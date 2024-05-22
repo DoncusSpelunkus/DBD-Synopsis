@@ -1,4 +1,5 @@
 import redis
+import MyMongoClient as mongo
 
 class MyRedisClientFactory:
     @staticmethod
@@ -11,7 +12,10 @@ class MyRedisClient:
         self.host = host
         self.port = port
         self.password = password
+        self.mongoClient = mongo.MyMongoFactory.create_client()
         self.redis_client = None  # Initialize redis_client as None
+        self.mongoClient.connect()
+        
 
     def __repr__(self):
         return f"MyRedisClient(host='{self.host}', port={self.port}, password='{self.password}')"
@@ -38,5 +42,10 @@ class MyRedisClient:
         cache_key = f"sessionLifetime:{start_date}_to_{end_date}"
         db = self.getDb()
         
-        cached_data = db.get(cache_key)
-    
+        if db.exists(cache_key):
+            print("Cache hit")
+            return db.get(cache_key)
+        else:
+            result = self.mongoClient.getLifetimeByDate(start_date, end_date)
+            return result
+          
