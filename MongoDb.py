@@ -1,84 +1,70 @@
 ﻿from pymongo import MongoClient
-import datetime
+import json
+import os
+import time
 
-# Replace with your MongoDB connection string
+# Connect to MongoDB
 client = MongoClient("mongodb://localhost:27017/")
 
-# Select the database
-db = client["UserMetrics"]
+# Define the database
+db = client["mongo"]
 
-# Define the collections (tables)
+# Start the timer
+start_time = time.time()
+
+# Define the collections
 user_primary_collection = db["User_Primary"]
 session_user_data_collection = db["Session_User_data"]
 user_total_data_collection = db["User_Total_data"]
 
-# Define the documents (rows) for each collection with actual sample data
-user_primary_document = {
-    "FirstName": "John",
-    "lastName": "Doe",
-    "age": 30,
-    "UserId": 1,
-}
+# Check if collections are empty
+if user_primary_collection.count_documents({}) > 0 or session_user_data_collection.count_documents({}) > 0 or user_total_data_collection.count_documents({}) > 0:
+    print("Data already imported. Skipping import.")
+else:
+    # Define path to JSON file
+    json_file_path = "all_user_data_with_urls.json"
 
-session_user_data_document = {
-    "SessionId": 1,
-    "UserId": 1,
-    "SessionSearchAmount": 5,
-    "SessionLinkClicks": 10,
-    "SessionLifeTime": 3600,
-    "SessionStart": datetime.datetime.now(),  # Field to be indexed with TTL
-    "SessionLinks": ["http://example.com", "http://example2.com"],
-}
+    # Check if JSON file exists
+    if os.path.exists(json_file_path):
+        # Load data from JSON file
+        with open(json_file_path, "r") as json_file:
+            all_users = json.load(json_file)
 
-user_total_data_document = {
-    "TotalId": 1,
-    "UserId": 1,
-    "TotalLinkClickAmount": 15,
-    "ListOfUrls": ["http://example.com", "http://example2.com", "http://example3.com"],
-}
+        # Insert user data into User_Primary collection
+        user_primary_collection.insert_many(all_users)
 
-# Create indexes for `User_Primary`
-user_primary_collection.create_index([("UserId", 1)], unique=True)  # Unique index on `UserId` in ascending order
-user_primary_collection.create_index([("age", 1), ("UserId", 1)])  # Composite index on `age` and `UserId` in ascending order
+        # Create indexes for faster querying
+        user_primary_collection.create_index("age")
+        session_user_data_collection.create_index("UserId")
 
-# Create indexes for `Session_User_data`
-session_user_data_collection.create_index([("SessionId", 1)], unique=True)  # Unique index on `SessionId` in ascending order
-session_user_data_collection.create_index([("UserId", 1), ("SessionLinkClicks", 1)])  # Composite index on `UserId` and `SessionLinkClicks` in ascending order
-session_user_data_collection.create_index([("SessionStart", 1)])  # Index on `SessionStart` in ascending order
+        # Extract session user data and total data from each user and insert into respective collections
+        for user in all_users:
+            user_id = user["user_id"]
+            session_user_data_collection.insert_many(user["session_user_data"])
+            user_total_data_collection.insert_one(user["total_data"])
 
-# Drop the existing index on `SessionStart` if it exists
-existing_indexes = session_user_data_collection.index_information()
-if "SessionStart_1" in existing_indexes:
-    session_user_data_collection.drop_index("SessionStart_1")
+        print("Data imported successfully.")
+    else:
+        print(f"JSON file '{json_file_path}' not found.")
 
-# Create a TTL index on `SessionStart` with a 30-day expiration (example)
-session_user_data_collection.create_index([("SessionStart", 1)], expireAfterSeconds=30*24*60*60)
+# Query to get all users between 18 and 21 years old
+users_between_18_and_21 = user_primary_collection.find({"age": {"$gte": 18, "$lte":21}})
 
-# Create indexes for `User_Total_data`
-user_total_data_collection.create_index([("TotalId", 1)], unique=True)  # Unique index on `TotalId` in ascending order
-user_total_data_collection.create_index([("UserId", 1), ("TotalLinkClickAmount", 1)])  # Composite index on `UserId` and `TotalLinkClickAmount` in ascending order
+# List to store the results
+user_sessions = []
 
-# Insert the documents into the collections
-user_primary_collection.insert_one(user_primary_document)
-session_user_data_collection.insert_one(session_user_data_document)
-user_total_data_collection.insert_one(user_total_data_document)
+# Fetch session lifetime for each user
+for user in users_between_18_and_21:
+    user_id = user["user_id"]
+    age = user["age"]
+    sessions = session_user_data_collection.find({"UserId": user_id}, {"SessionLifeTime": 1, "_id": 0})
+    for session in sessions:
+        user_sessions.append({"UserId": user_id, "Age": age, "SessionLifeTime": session["SessionLifeTime"]})
 
-# Print the inserted documents to verify
-print("User Primary Document:")
-print(user_primary_collection.find_one({"UserId": 1}))
+# Print the results
+for user_session in user_sessions:
+    print(user_session)
 
-print("\nSession User Data Document:")
-print(session_user_data_collection.find_one({"SessionId": 1}))
-
-print("\nUser Total Data Document:")
-print(user_total_data_collection.find_one({"TotalId": 1}))
-
-# Verify the created indexes
-print("\nIndexes on User_Primary collection:")
-print(user_primary_collection.index_information())
-
-print("\nIndexes on Session_User_data collection:")
-print(session_user_data_collection.index_information())
-
-print("\nIndexes on User_Total_data collection:")
-print(user_total_data_collection.index_information())
+# Calculate and print the elapsed time
+elapsed_time = time.time() - start_time
+print("Elapsed Time:", elapsed_time, "seconds")
