@@ -14,33 +14,49 @@ user_total_data_collection = db["User_Total_data"]
 
 # Define the documents (rows) for each collection with actual sample data
 user_primary_document = {
-    "name": "John",
+    "FirstName": "John",
     "lastName": "Doe",
     "age": 30,
-    "primeryld": 1,
+    "UserId": 1,
 }
 
 session_user_data_document = {
-    "Sessionld": 1,
-    "Userld": 1,
+    "SessionId": 1,
+    "UserId": 1,
     "SessionSearchAmount": 5,
     "SessionLinkClicks": 10,
     "SessionLifeTime": 3600,
-    "SessionStartDate": datetime.datetime.now(),
+    "SessionStart": datetime.datetime.now(),  # Field to be indexed with TTL
     "SessionLinks": ["http://example.com", "http://example2.com"],
 }
 
 user_total_data_document = {
-    "Totalld": 1,
-    "Userld": 1,
+    "TotalId": 1,
+    "UserId": 1,
     "TotalLinkClickAmount": 15,
     "ListOfUrls": ["http://example.com", "http://example2.com", "http://example3.com"],
 }
 
-# Create the collections if they don't exist yet
-user_primary_collection.create_index([("primeryld", 1)], unique=True)
-session_user_data_collection.create_index([("Sessionld", 1)], unique=True)
-user_total_data_collection.create_index([("Totalld", 1)], unique=True)
+# Create indexes for `User_Primary`
+user_primary_collection.create_index([("UserId", 1)], unique=True)  # Unique index on `UserId` in ascending order
+user_primary_collection.create_index([("age", 1), ("UserId", 1)])  # Composite index on `age` and `UserId` in ascending order
+
+# Create indexes for `Session_User_data`
+session_user_data_collection.create_index([("SessionId", 1)], unique=True)  # Unique index on `SessionId` in ascending order
+session_user_data_collection.create_index([("UserId", 1), ("SessionLinkClicks", 1)])  # Composite index on `UserId` and `SessionLinkClicks` in ascending order
+session_user_data_collection.create_index([("SessionStart", 1)])  # Index on `SessionStart` in ascending order
+
+# Drop the existing index on `SessionStart` if it exists
+existing_indexes = session_user_data_collection.index_information()
+if "SessionStart_1" in existing_indexes:
+    session_user_data_collection.drop_index("SessionStart_1")
+
+# Create a TTL index on `SessionStart` with a 30-day expiration (example)
+session_user_data_collection.create_index([("SessionStart", 1)], expireAfterSeconds=30*24*60*60)
+
+# Create indexes for `User_Total_data`
+user_total_data_collection.create_index([("TotalId", 1)], unique=True)  # Unique index on `TotalId` in ascending order
+user_total_data_collection.create_index([("UserId", 1), ("TotalLinkClickAmount", 1)])  # Composite index on `UserId` and `TotalLinkClickAmount` in ascending order
 
 # Insert the documents into the collections
 user_primary_collection.insert_one(user_primary_document)
@@ -49,10 +65,20 @@ user_total_data_collection.insert_one(user_total_data_document)
 
 # Print the inserted documents to verify
 print("User Primary Document:")
-print(user_primary_collection.find_one({"primeryld": 1}))
+print(user_primary_collection.find_one({"UserId": 1}))
 
 print("\nSession User Data Document:")
-print(session_user_data_collection.find_one({"Sessionld": 1}))
+print(session_user_data_collection.find_one({"SessionId": 1}))
 
 print("\nUser Total Data Document:")
-print(user_total_data_collection.find_one({"Totalld": 1}))
+print(user_total_data_collection.find_one({"TotalId": 1}))
+
+# Verify the created indexes
+print("\nIndexes on User_Primary collection:")
+print(user_primary_collection.index_information())
+
+print("\nIndexes on Session_User_data collection:")
+print(session_user_data_collection.index_information())
+
+print("\nIndexes on User_Total_data collection:")
+print(user_total_data_collection.index_information())
