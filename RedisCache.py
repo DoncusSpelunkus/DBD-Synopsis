@@ -61,3 +61,16 @@ class MyRedisClient:
         else:
             result = self.mongoClient.getSessionSpecificWithUser(userId, sessionId)
             db.set(cachedKey, json.dumps(result), ex=expiration_time)
+            
+    
+    def getAllSessions_cache(self):
+        expiration_time = 1
+        cachedKey = "allSessions"
+        db = self.getDb()
+        
+        if db.exists(cachedKey):
+            print("Cache hit")
+            return json.loads(db.get(cachedKey))
+        else:
+            result = self.mongoClient.getAllSessions()
+            db.set(cachedKey, json.dumps(result), ex=expiration_time)

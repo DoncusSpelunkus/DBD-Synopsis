@@ -51,3 +51,15 @@ class MyMongoClient:
             print("No users found between 18 and 21 years old in the specified date range.")
             
         return list(result)
+    
+    def getAllSessions(self):
+        db = self.getDb()
+        session_data = db.get_collection("Session_User").find({},{"SessionLifeTime": 1, "_id": 0})
+        result = []
+        if session_data:
+            for session in session_data:
+                result.append(session)
+        else:
+            print("No users found between 18 and 21 years old in the specified date range.")
+        
+        return list(result)

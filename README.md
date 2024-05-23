@@ -14,3 +14,5 @@ ENDPOINTS:
             "start_date": "2020-12-07",
             "end_date": "2021-11-04"
         }
+
+    <http://localhost:8080/getAllSessions>
