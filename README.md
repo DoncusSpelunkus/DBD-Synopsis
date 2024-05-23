@@ -20,6 +20,10 @@ ENDPOINTS:
 
 Args:
     --norun (prevents main loop from executing)
-    --rebuildDb (rebuils mongoDb)
+    --rebuildDb (rebuils mongoDb) HAS THREE SUB ARGS
+        --both (rebuilds both indexed and nonindexed db)
+        --noindex (rebuilds only nonindexed db)
+        --index (rebuilds only indexed db)
     --redis_test (runs tabulation with Redis active)
     --mongo_test (runs tabulation with only mongoDb)
+    

@@ -31,14 +31,14 @@ def measure_query_performance(query_function, *args, iterations=10):
     }
 
 # Main function to execute the benchmark
-def main():
-    client = MyMongoFactory.create_client()
+def main(dbName):
+    client = MyMongoFactory.create_client(dbName)
     client.connect()
     
-    start_date = "2023-01-01"
-    end_date = "2023-12-31"
-    userId = "some_user_id"
-    sessionId = "some_session_id"
+    start_date = "2020-01-01"
+    end_date = "2021-12-31"
+    userId = 500
+    sessionId = 1
 
     query_results_lifetime = measure_query_performance(client.getLifetimeByDate, start_date, end_date)
     query_results_session = measure_query_performance(client.getSessionSpecificWithUser, userId, sessionId)
@@ -50,6 +50,3 @@ def main():
     ]
 
     print(tabulate(table, headers, tablefmt="grid"))
-
-if __name__ == "__main__":
-    main()

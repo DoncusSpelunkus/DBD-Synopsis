@@ -16,7 +16,7 @@ class MyRedisClient:
         self.host = host
         self.port = port
         self.password = password
-        self.mongoClient = mongo.MyMongoFactory.create_client()
+        self.mongoClient = mongo.MyMongoFactory.create_client("Index")
         self.redis_client = None  # Initialize redis_client as None
         self.mongoClient.connect()
         
@@ -41,11 +41,12 @@ class MyRedisClient:
         
     
     def get_lifetimeByDate_cache(self, start_date, end_date):
-        expiration_time = 1
+        expiration_time = 60
         cachedKey = "from" + start_date + "to" + end_date
         db = self.getDb()
         
         if db.exists(cachedKey):
+            print("Cache hit")
             return json.loads(db.get(cachedKey))
         else:
             result = self.mongoClient.getLifetimeByDate(start_date, end_date)
@@ -53,7 +54,7 @@ class MyRedisClient:
     
     
     def getSessionSpecificWithUser_cache(self, userId, sessionId):
-        expiration_time = 1
+        expiration_time = 60
         cachedKey = f"userId:{userId}:sessionId:{sessionId}"
         db = self.getDb()
         
@@ -63,6 +64,7 @@ class MyRedisClient:
         else:
             result = self.mongoClient.getSessionSpecificWithUser(userId, sessionId)
             db.set(cachedKey, json.dumps(result), ex=expiration_time)
+            return result
             
     
     def getAllSessions_cache(self):
@@ -76,10 +78,10 @@ class MyRedisClient:
         else:
             result = self.mongoClient.getAllSessions()
             db.set(cachedKey, json.dumps(result), ex=expiration_time)
-            
+
+     
     def getSortedSessions_cache(self, start_date, end_date):
-        expiration_time = 60
-        cachedKey = "newlist2"
+        cachedKey = "sortedSessions"
         db = self.getDb()
         
         result = []
@@ -94,11 +96,13 @@ class MyRedisClient:
         else:
             result = self.mongoClient.getAllSessions()
             for document in result:
-                print(document)
                 score = int(dt.datetime.strptime(document["SessionStartDate"],"%Y-%m-%d").timestamp() * 1000)
-                print(score)
                 json_document = json.dumps(document) 
                 db.zadd(cachedKey, {json_document: score})
-            
+            db.expire(cachedKey, 60*60)
+        
         return result
+    
+
+
     
