@@ -27,19 +27,27 @@ class MyMongoClient:
     
     def getLifetimeByDate(self, start_date, end_date):
         db = self.getDb()
-        print(start_date, end_date)
         session_data = db.get_collection("Session_User").find({"SessionStartDate": {"$gte": start_date, "$lte": end_date}},{"SessionLifeTime": 1, "_id": 0})
-        print(session_data)
-        
         result = []
         # Check if any users were found
         if session_data:
             for session in session_data:
                 result.append(session)
-                print(session)
         else:
             print("No users found between 18 and 21 years old in the specified date range.")
             
-        
+        return list(result)
+    
+    def getSessionSpecificWithUser(self, userId, sessionId):
+        db = self.getDb()
+        session_data = db.get_collection("Session_User").find({"UserId": userId, "SessionId": sessionId},{"SessionLifeTime": 1, "_id": 0})
+        result = []
+        # Check if any users were found
+        if session_data:
+            for session in session_data:
+                result.append(session)
+
+        else:
+            print("No users found between 18 and 21 years old in the specified date range.")
             
         return list(result)

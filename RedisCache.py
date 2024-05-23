@@ -34,8 +34,6 @@ class MyRedisClient:
     
     def getDb(self):
         self.redis_client.set("test", "test")
-        result = self.redis_client.get("test")
-        print(result)
         return self.redis_client
         
     
@@ -51,3 +49,15 @@ class MyRedisClient:
             result = self.mongoClient.getLifetimeByDate(start_date, end_date)
             db.set(cachedKey, json.dumps(result), ex=expiration_time)
     
+    
+    def getSessionSpecificWithUser_cache(self, userId, sessionId):
+        expiration_time = 1
+        cachedKey = f"userId:{userId}:sessionId:{sessionId}"
+        db = self.getDb()
+        
+        if db.exists(cachedKey):
+            print("Cache hit")
+            return json.loads(db.get(cachedKey))
+        else:
+            result = self.mongoClient.getSessionSpecificWithUser(userId, sessionId)
+            db.set(cachedKey, json.dumps(result), ex=expiration_time)

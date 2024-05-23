@@ -16,11 +16,12 @@ class ContextBuild:
         
         
         user_primary_collection.create_index([("user_id", 1)], unique=True)
-        session_user_data_collection.create_index([("SessionStartDate", 1), ("SessionId", 1), ("SessionLifeTime", 1)])
+        session_user_data_collection.create_index([("SessionStartDate", 1)])
+        session_user_data_collection.create_index([("SessionId", 1), ("UserId", 1)])
         user_total_data_collection.create_index([("TotalId", 1)], unique=True)
         
         
-        # session_user_data_collection.drop_index("SessionStartDate_1_SessionId_1_SessionLifeTime_1")
+        # session_user_data_collection.drop_index("SessionId_1_UserId_1")
         
         list = session_user_data_collection.list_indexes()
         
