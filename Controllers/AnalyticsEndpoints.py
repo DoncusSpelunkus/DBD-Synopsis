@@ -1,4 +1,4 @@
-import RedisCache as cache
+import Redis.RedisCache as cache
 from flask import jsonify, request, Blueprint
 import datetime as dt
 

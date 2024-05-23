@@ -16,3 +16,10 @@ ENDPOINTS:
         }
 
     <http://localhost:8080/getAllSessions>
+
+
+Args:
+    --norun (prevents main loop from executing)
+    --rebuildDb (rebuils mongoDb)
+    --redis_test (runs tabulation with Redis active)
+    --mongo_test (runs tabulation with only mongoDb)

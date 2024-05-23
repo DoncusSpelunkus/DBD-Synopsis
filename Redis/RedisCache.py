@@ -1,6 +1,9 @@
 import redis
-import MyMongoClient as mongo
+import Mongo.MyMongoClient as mongo
 import json
+import datetime as dt
+from tabulate import tabulate
+import time
 
 class MyRedisClientFactory:
     @staticmethod
@@ -43,7 +46,6 @@ class MyRedisClient:
         db = self.getDb()
         
         if db.exists(cachedKey):
-            print("Cache hit")
             return json.loads(db.get(cachedKey))
         else:
             result = self.mongoClient.getLifetimeByDate(start_date, end_date)
@@ -74,3 +76,29 @@ class MyRedisClient:
         else:
             result = self.mongoClient.getAllSessions()
             db.set(cachedKey, json.dumps(result), ex=expiration_time)
+            
+    def getSortedSessions_cache(self, start_date, end_date):
+        expiration_time = 60
+        cachedKey = "newlist2"
+        db = self.getDb()
+        
+        result = []
+        
+        if db.exists(cachedKey):
+            start_date_epoch = int(dt.datetime.strptime(start_date, "%Y-%m-%d").timestamp() * 1000)
+            end_date_epoch = int(dt.datetime.strptime(end_date, "%Y-%m-%d").timestamp() * 1000)
+            print("Cache hit")
+            sorted_sessions = db.zrangebyscore(cachedKey, min=start_date_epoch, max=end_date_epoch)
+            for session in sorted_sessions:
+                result.append(json.loads(session))
+        else:
+            result = self.mongoClient.getAllSessions()
+            for document in result:
+                print(document)
+                score = int(dt.datetime.strptime(document["SessionStartDate"],"%Y-%m-%d").timestamp() * 1000)
+                print(score)
+                json_document = json.dumps(document) 
+                db.zadd(cachedKey, {json_document: score})
+            
+        return result
+    
