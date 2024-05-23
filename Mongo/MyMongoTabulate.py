@@ -32,8 +32,17 @@ def measure_query_performance(query_function, *args, iterations=10):
 
 # Main function to execute the benchmark
 def main(dbName):
+    print(f"Running benchmark for MongoDB database '{dbName}'")
+    
     client = MyMongoFactory.create_client(dbName)
     client.connect()
+    
+    db = client.getDb()
+    db.get_collection("User_Primary").list_indexes()
+    db.get_collection("Session_User").list_indexes()
+    db.get_collection("User_Total").list_indexes()
+    
+    db
     
     start_date = "2020-01-01"
     end_date = "2021-12-31"

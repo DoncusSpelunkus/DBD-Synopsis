@@ -22,9 +22,6 @@ class ContextBuild:
         session_user_data_collection.create_index([("SessionId", 1), ("UserId", 1)])
         user_total_data_collection.create_index([("TotalId", 1)], unique=True)
         
-        session_user_data_collection.drop_index("SessionStartDate_1")
-        session_user_data_collection.drop_index("SessionId_1_UserId_1")
-        
         list = session_user_data_collection.list_indexes()
         
         for index in list:

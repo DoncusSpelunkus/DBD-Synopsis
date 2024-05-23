@@ -19,9 +19,6 @@ class MyMongoClient:
     def connect(self):
         try:
             self.client = MongoClient(self.connection_string)
-            # Test connection to see if it works
-            if self.client.list_database_names():
-                print(f"Connected to MongoDB at {self.connection_string}")
         except Exception as e:
             print(f"Failed to connect to MongoDB: {e}")
     
@@ -49,6 +46,7 @@ class MyMongoClient:
         # Check if any users were found
         if session_data:
             for session in session_data:
+                
                 result.append(session)
         else:
             print("No session found with the specified userId and sessionId.")

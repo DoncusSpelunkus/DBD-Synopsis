@@ -51,13 +51,11 @@ if args.rebuildDb:
         
 if args.mongo_test:
     if args.both | args.index:
-        print("Testing MongoDB operations...")
         try:
             mongoTabulate.main("Index")  # Call MongoDB functionality using try-except for error handling
         except Exception as e:
             print(f"Error during MongoDB operations: {e}")
     if args.both | args.no_index:
-        print("Testing MongoDB operations...")
         try:
             mongoTabulate.main("NoIndex")  # Call MongoDB functionality using try-except for error handling
         except Exception as e:
