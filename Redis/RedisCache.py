@@ -16,7 +16,7 @@ class MyRedisClient:
         self.host = host
         self.port = port
         self.password = password
-        self.mongoClient = mongo.MyMongoFactory.create_client("Index")
+        self.mongoClient = mongo.MyMongoFactory.create_client()
         self.redis_client = None  # Initialize redis_client as None
         self.mongoClient.connect()
         

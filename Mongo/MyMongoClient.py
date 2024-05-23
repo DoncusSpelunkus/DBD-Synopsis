@@ -4,7 +4,7 @@ import time
 
 class MyMongoFactory:
     @staticmethod
-    def create_client(dbName="mongo"):
+    def create_client(dbName="Index"):
         return MyMongoClient("mongodb://localhost:27017/", dbName)
     
 class MyMongoClient:
