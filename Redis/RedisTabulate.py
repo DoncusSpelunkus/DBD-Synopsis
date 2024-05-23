@@ -2,17 +2,22 @@ import time
 from tabulate import tabulate
 from Redis.RedisCache import MyRedisClientFactory
 
-
-
 # Function to measure query performance
 def measure_query_performance(query_function, *args, iterations=10):
     times = []
+    benchmarkCount = 0
     for _ in range(iterations):
         start_time = time.time()
-        query_function(*args)
+        benchmarkCount = query_function(*args, benchmarkCount)
         end_time = time.time()
         times.append((end_time - start_time) * 1000)  # Convert to milliseconds
 
+    if benchmarkCount < iterations :
+        print("failure: benchmarkCount is less than iterations")
+        print(f"benchmarkCount: {benchmarkCount}")
+        print(f"iterations: {iterations}")
+        print("This may be due to the cache not being populated yet. Please try again.")
+        
     times.sort()
     avg_time = sum(times) / len(times)
     min_time = times[0]
@@ -32,16 +37,24 @@ def measure_query_performance(query_function, *args, iterations=10):
         "QPS (queries/s)": qps
     }
 
+def fetch_data(query_function, *args):
+    query_function(*args)
+
 # Main function to execute the benchmark
-def main():
-    client = MyRedisClientFactory.create_client()
+def main(dbName):
+    print(f"Running benchmark for MongoDB database '{dbName}' with cache...")
+    
+    client = MyRedisClientFactory.create_client(dbName)
     client.connect()
     
-    start_date = "2023-01-01"
-    end_date = "2023-12-31"
-    userId = "some_user_id"
-    sessionId = "some_session_id"
+    start_date = "2020-01-01"
+    end_date = "2021-12-31"
+    userId = 500
+    sessionId = 1
 
+    fetch_data(client.get_lifetimeByDate_cache, start_date, end_date)
+    fetch_data(client.getSessionSpecificWithUser_cache, userId, sessionId)
+    
     query_results_lifetime = measure_query_performance(client.get_lifetimeByDate_cache, start_date, end_date)
     query_results_session = measure_query_performance(client.getSessionSpecificWithUser_cache, userId, sessionId)
 

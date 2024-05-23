@@ -7,16 +7,16 @@ import time
 
 class MyRedisClientFactory:
     @staticmethod
-    def create_client():
-        return MyRedisClient("localhost", 6379, "")
+    def create_client(dbName="Index"):
+        return MyRedisClient("localhost", 6379, "", dbName)
     
     
 class MyRedisClient:
-    def __init__(self, host: str, port: int, password: str):
+    def __init__(self, host: str, port: int, password: str, dbName):
         self.host = host
         self.port = port
         self.password = password
-        self.mongoClient = mongo.MyMongoFactory.create_client()
+        self.mongoClient = mongo.MyMongoFactory.create_client(dbName)
         self.redis_client = None  # Initialize redis_client as None
         self.mongoClient.connect()
         
@@ -25,12 +25,8 @@ class MyRedisClient:
         return f"MyRedisClient(host='{self.host}', port={self.port}, password='{self.password}')"
     
     def connect(self):
-        print("trying to connect")
         try:
             self.redis_client = redis.Redis(host=self.host, port=self.port, password=self.password)
-            # Test connection to see if it works
-            if self.redis_client.ping():
-                print(f"Connected to Redis at {self.host}:{self.port}")
         except redis.ConnectionError as e:
             print(f"Failed to connect to Redis: {e}")
 
@@ -40,27 +36,34 @@ class MyRedisClient:
         return self.redis_client
         
     
-    def get_lifetimeByDate_cache(self, start_date, end_date):
+    def get_lifetimeByDate_cache(self, start_date, end_date, benchmarkCount=-1):
         expiration_time = 60
         cachedKey = "from" + start_date + "to" + end_date
         db = self.getDb()
+    
         
         if db.exists(cachedKey):
-            print("Cache hit")
-            return json.loads(db.get(cachedKey))
+            result = json.loads(db.get(cachedKey))
+            if benchmarkCount >= 0 :
+                return benchmarkCount + 1
+            else:
+                return result
         else:
             result = self.mongoClient.getLifetimeByDate(start_date, end_date)
             db.set(cachedKey, json.dumps(result), ex=expiration_time)
     
     
-    def getSessionSpecificWithUser_cache(self, userId, sessionId):
+    def getSessionSpecificWithUser_cache(self, userId, sessionId, benchmarkCount=-1):
         expiration_time = 60
         cachedKey = f"userId:{userId}:sessionId:{sessionId}"
         db = self.getDb()
         
         if db.exists(cachedKey):
-            print("Cache hit")
-            return json.loads(db.get(cachedKey))
+            result = json.loads(db.get(cachedKey))
+            if benchmarkCount >= 0 :
+                return benchmarkCount + 1
+            else:
+                return result
         else:
             result = self.mongoClient.getSessionSpecificWithUser(userId, sessionId)
             db.set(cachedKey, json.dumps(result), ex=expiration_time)

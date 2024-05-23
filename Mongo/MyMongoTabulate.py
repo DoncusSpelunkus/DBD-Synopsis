@@ -32,7 +32,7 @@ def measure_query_performance(query_function, *args, iterations=10):
 
 # Main function to execute the benchmark
 def main(dbName):
-    print(f"Running benchmark for MongoDB database '{dbName}'")
+    print(f"Running benchmark for MongoDB database '{dbName}' without cache...")
     
     client = MyMongoFactory.create_client(dbName)
     client.connect()

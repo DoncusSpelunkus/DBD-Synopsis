@@ -29,15 +29,28 @@ parser.add_argument("--both", action="store_true", help="Perform all operations 
 parser.add_argument("--index", action="store_true", help="Perform all operations (testing)")
 parser.add_argument("--no_index", action="store_true", help="Perform all operations (testing)")
 parser.add_argument("--deleteDb", action="store_true", help="Perform all operations (testing)")
+parser.add_argument("--test_all", action="store_true", help="Perform MongoDB operations (testing)")
 
 args = parser.parse_args()
 
-if args.redis_test:
-    print("Testing Redis operations...")
+
+def mongo_tabulate(dbName):
     try:
-        redisTabulate.main()  # Call Redis functionality using try-except for error handling
+        mongoTabulate.main(dbName)  # Call MongoDB functionality using try-except for error handling
+    except Exception as e:
+        print(f"Error during MongoDB operations: {e}")
+
+def redis_tabulate(dbName):
+    try:
+        redisTabulate.main(dbName)  # Call Redis functionality using try-except for error handling
     except Exception as e:
         print(f"Error during Redis operations: {e}")
+        
+
+## Argument parsing        
+if args.redis_test:
+    redis_tabulate("Index")  # Call Redis functionality using try-except for error handling
+    
 
 if args.rebuildDb:
     if args.both | args.index:
@@ -51,15 +64,9 @@ if args.rebuildDb:
         
 if args.mongo_test:
     if args.both | args.index:
-        try:
-            mongoTabulate.main("Index")  # Call MongoDB functionality using try-except for error handling
-        except Exception as e:
-            print(f"Error during MongoDB operations: {e}")
+        mongo_tabulate("Index")
     if args.both | args.no_index:
-        try:
-            mongoTabulate.main("NoIndex")  # Call MongoDB functionality using try-except for error handling
-        except Exception as e:
-            print(f"Error during MongoDB operations: {e}")
+        mongo_tabulate("NoIndex")
     else:
         print("--mongo_test requires --both or --index or --no_index to be set.")
         
@@ -72,6 +79,12 @@ if args.deleteDb:
         CtxBld.ContextBuild.deleteDb("NoIndex")
     else:
         print("--deleteDb requires --both or --index or --no_index to be set.")
-        
+
+if args.test_all:
+    mongo_tabulate("Index")
+    redis_tabulate("Index")
+    mongo_tabulate("NoIndex")
+    redis_tabulate("NoIndex")
+
 if __name__ == "__main__" and not args.no_run:
     app.run(host="0.0.0.0", port=8080)
