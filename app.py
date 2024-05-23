@@ -10,12 +10,8 @@ CORS(app, origins="*", supports_credentials=True)
 analytics_endpoints = ae.AnalyticsEndpoints()
 analytics_endpoints.register_endpoints()
 
-
-
 # Use the endPoint blueprint object for registration
 app.register_blueprint(ae.endPoint)
-
-
 
 if __name__ == "__main__":
     # Connect to MongoDB

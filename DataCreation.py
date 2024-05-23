@@ -12,6 +12,12 @@ def generate_random_urls(num_urls):
         urls.append(f"http://{url}.com")
     return urls
 
+def generate_random_date():
+    year = random.randint(2010, 2021)
+    month = random.randint(1, 12)
+    day = random.randint(1, 28)
+    return datetime.datetime(year, month, day).strftime("%Y-%m-%d")
+
 
 # Generate user data
 all_users = []
@@ -32,7 +38,7 @@ for i in range(1, 10001):
             "SessionSearchAmount": random.randint(1, 10),
             "SessionLinkClicks": random.randint(1, 20),
             "SessionLifeTime": random.randint(100, 1000),  # Random session lifetime
-            "SessionStartDate": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "SessionStartDate": generate_random_date(),
             "SessionLinks": generate_random_urls(5)  # Generate 5 random URLs for session links
         }
         session_user_data.append(session)

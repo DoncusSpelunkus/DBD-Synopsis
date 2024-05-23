@@ -15,7 +15,10 @@ class AnalyticsEndpoints:
         # Add more endpoints similarly
         
     def getLifetimeByDate(self):
-        start_date = request.json["startDate"]
-        end_date = request.json["endDate"]
+        start_date = request.json["start_date"]
+        end_date = request.json["end_date"]
+        start_time = dt.datetime.now()
         result = self.redis_client.get_lifetimeByDate_cache(start_date, end_date)
+        end_time = dt.datetime.now()
+        print(f"Execution time: {end_time - start_time}")
         return jsonify(result)

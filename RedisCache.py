@@ -1,5 +1,6 @@
 import redis
 import MyMongoClient as mongo
+import json
 
 class MyRedisClientFactory:
     @staticmethod
@@ -44,8 +45,10 @@ class MyRedisClient:
         
         if db.exists(cache_key):
             print("Cache hit")
-            return db.get(cache_key)
+            return json.loads(db.get(cache_key))
         else:
             result = self.mongoClient.getLifetimeByDate(start_date, end_date)
+            serialized_result = json.dumps(result)  # Serialize list to JSON string
+            db.set(cache_key, serialized_result, ex=60)  # Set cache key with expiry of 60 seconds
             return result
           
