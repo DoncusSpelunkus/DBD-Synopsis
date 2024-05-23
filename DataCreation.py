@@ -21,7 +21,7 @@ def generate_random_date():
 
 # Generate user data
 all_users = []
-for i in range(1, 10001):
+for i in range(1, 100000):
     user = {
         "user_id": i,
         "name": f"User{i}",

@@ -8,17 +8,26 @@ class ContextBuild:
         client = MongoClient("mongodb://localhost:27017")
         db = client["mongo"]
         
-        db.drop_collection("User_Primary")
-        db.drop_collection("Session_User")
-        db.drop_collection("User_Total")
+
         
         user_primary_collection = db["User_Primary"]
         session_user_data_collection = db["Session_User"]
         user_total_data_collection = db["User_Total"]
-                    
-        user_primary_collection.create_index([("user_id", 1)], unique=True)
         
+        
+        user_primary_collection.create_index([("user_id", 1)], unique=True)
+        session_user_data_collection.create_index([("SessionStartDate", 1), ("SessionId", 1), ("SessionLifeTime", 1)])
         user_total_data_collection.create_index([("TotalId", 1)], unique=True)
+        
+        
+        # session_user_data_collection.drop_index("SessionStartDate_1_SessionId_1_SessionLifeTime_1")
+        
+        list = session_user_data_collection.list_indexes()
+        
+        for index in list:
+            print(index)
+        
+        
         
         try:
             if user_primary_collection.count_documents({}) > 0 or session_user_data_collection.count_documents({}) > 0 or user_total_data_collection.count_documents({}) > 0:

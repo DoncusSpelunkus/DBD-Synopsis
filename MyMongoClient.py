@@ -37,7 +37,6 @@ class MyMongoClient:
             for session in session_data:
                 result.append(session)
                 print(session)
-                
         else:
             print("No users found between 18 and 21 years old in the specified date range.")
             

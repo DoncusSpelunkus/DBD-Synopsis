@@ -40,15 +40,14 @@ class MyRedisClient:
         
     
     def get_lifetimeByDate_cache(self, start_date, end_date):
-        cache_key = f"sessionLifetime:{start_date}_to_{end_date}"
+        expiration_time = 1
+        cachedKey = "from" + start_date + "to" + end_date
         db = self.getDb()
         
-        if db.exists(cache_key):
+        if db.exists(cachedKey):
             print("Cache hit")
-            return json.loads(db.get(cache_key))
+            return json.loads(db.get(cachedKey))
         else:
             result = self.mongoClient.getLifetimeByDate(start_date, end_date)
-            serialized_result = json.dumps(result)  # Serialize list to JSON string
-            db.set(cache_key, serialized_result, ex=60)  # Set cache key with expiry of 60 seconds
-            return result
-          
+            db.set(cachedKey, json.dumps(result), ex=expiration_time)
+    
