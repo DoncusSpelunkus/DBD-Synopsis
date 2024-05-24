@@ -14,7 +14,7 @@ class AnalyticsEndpoints:
         endPoint.add_url_rule("/getLifetimeByDate", methods=["POST"], view_func=self.getLifetimeByDate)
         endPoint.add_url_rule("/getSessionSpecificWithUser", methods=["POST"], view_func=self.getSessionSpecificWithUser)
         endPoint.add_url_rule("/getAllSessions", methods=["GET"], view_func=self.getAllSessions)
-        # Add more endpoints similarly
+        endPoint.add_url_rule("/getUsersByWebsite", methods=["POST"], view_func=self.getUsersByWebsite)
         
     def getLifetimeByDate(self):
         start_date = request.json["start_date"]
@@ -43,4 +43,11 @@ class AnalyticsEndpoints:
         end_time = dt.datetime.now()
         print(f"Execution time: {end_time - start_time}")
         return jsonify(result)
-    
+    # method for getting all users that have visited a certain website by using keywords.
+    def getUsersByWebsite(self):
+        website_url = request.json["website_url"]
+        start_time = dt.datetime.now()
+        result = self.redis_client.getUsersByWebsite_cache(website_url)
+        end_time = dt.datetime.now()
+        print(f"Execution time: {end_time - start_time}")
+        return jsonify(result)

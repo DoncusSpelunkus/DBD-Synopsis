@@ -21,6 +21,7 @@ class ContextBuild:
         session_user_data_collection.create_index([("SessionStartDate", 1)])
         session_user_data_collection.create_index([("SessionId", 1), ("UserId", 1)])
         user_total_data_collection.create_index([("TotalId", 1)], unique=True)
+        user_total_data_collection.create_index([("Listofurls", 1)])
         
         list = session_user_data_collection.list_indexes()
         
