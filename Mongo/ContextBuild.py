@@ -9,27 +9,21 @@ class ContextBuild:
         db = client["Index"]
         
         db.drop_collection("User_Primary")
-        db.drop_collection("Session_User")
-        db.drop_collection("User_Total")
-        
+
         user_primary_collection = db["User_Primary"]
-        session_user_data_collection = db["Session_User"]
-        user_total_data_collection = db["User_Total"]
+
+        user_primary_collection.create_index([("User_Id", 1)], unique=True)
+        user_primary_collection.create_index([("Session_User_Data.SessionStartDate", 1)])
+        user_primary_collection.create_index([("Session_User_Data.SessionId", 1), ("User_Id", 1)])
+        user_primary_collection.create_index([("Total_Data.TotalId", 1)])
+        user_primary_collection.create_index([("Total_Data.ListOfUrls", 1)])
         
-        
-        user_primary_collection.create_index([("user_id", 1)], unique=True)
-        session_user_data_collection.create_index([("SessionStartDate", 1)])
-        session_user_data_collection.create_index([("SessionId", 1), ("UserId", 1)])
-        user_total_data_collection.create_index([("TotalId", 1)], unique=True)
-        user_total_data_collection.create_index([("Listofurls", 1)])
-        
-        list = session_user_data_collection.list_indexes()
-        
-        for index in list:
+        for index in user_primary_collection.list_indexes():
             print(index)
         
+        
         try:
-            if user_primary_collection.count_documents({}) > 0 or session_user_data_collection.count_documents({}) > 0 or user_total_data_collection.count_documents({}) > 0:
+            if user_primary_collection.count_documents({}):
                 print("Data already imported. Skipping import.")
             else:
                 # Define path to JSON file
@@ -43,21 +37,13 @@ class ContextBuild:
 
                     # Insert user data into User_Primary collection
                     user_primary_collection.insert_many(all_users)
-
-                    # Extract session user data and total data from each user and insert into respective collections
-                    for user in all_users:
-                        user_id = user["user_id"]
-                        session_user_data_collection.insert_many(user["session_user_data"])
-                        user_total_data_collection.insert_one(user["total_data"])
-
+                    
                     print("Data imported successfully.")
                 else:
                     print(f"JSON file '{json_file_path}' not found.")
         except Exception as e:
             print(f"Error: {e}")
             db.drop_collection("User_Primary")
-            db.drop_collection("Session_User")
-            db.drop_collection("User_Total")
             
     @staticmethod
     def rebuildNonIndexedDb():
@@ -65,15 +51,11 @@ class ContextBuild:
         db = client["NoIndex"]
         
         db.drop_collection("User_Primary")
-        db.drop_collection("Session_User")
-        db.drop_collection("User_Total")
         
         user_primary_collection = db["User_Primary"]
-        session_user_data_collection = db["Session_User"]
-        user_total_data_collection = db["User_Total"]
         
         try:
-            if user_primary_collection.count_documents({}) > 0 or session_user_data_collection.count_documents({}) > 0 or user_total_data_collection.count_documents({}) > 0:
+            if user_primary_collection.count_documents({}):
                 print("Data already imported. Skipping import.")
             else:
                 # Define path to JSON file
@@ -88,11 +70,6 @@ class ContextBuild:
                     # Insert user data into User_Primary collection
                     user_primary_collection.insert_many(all_users)
 
-                    # Extract session user data and total data from each user and insert into respective collections
-                    for user in all_users:
-                        user_id = user["user_id"]
-                        session_user_data_collection.insert_many(user["session_user_data"])
-                        user_total_data_collection.insert_one(user["total_data"])
 
                     print("Data imported successfully.")
                 else:
@@ -100,8 +77,6 @@ class ContextBuild:
         except Exception as e:
             print(f"Error: {e}")
             db.drop_collection("User_Primary")
-            db.drop_collection("Session_User")
-            db.drop_collection("User_Total")
             
     @staticmethod
     def deleteDb(dbName):

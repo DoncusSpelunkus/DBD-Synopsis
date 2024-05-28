@@ -38,13 +38,13 @@ def mongo_tabulate(dbName):
     try:
         mongoTabulate.main(dbName)  # Call MongoDB functionality using try-except for error handling
     except Exception as e:
-        print(f"Error during MongoDB operations: {e}")
+        print(f"Error during Mongo tabulation operations: {e}")
 
 def redis_tabulate(dbName):
     try:
         redisTabulate.main(dbName)  # Call Redis functionality using try-except for error handling
     except Exception as e:
-        print(f"Error during Redis operations: {e}")
+        print(f"Error during Redis tabulation operations: {e}")
         
 
 ## Argument parsing        

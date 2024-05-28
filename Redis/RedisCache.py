@@ -106,6 +106,26 @@ class MyRedisClient:
         
         return result
     
+    def get_users_by_website_cache(self, website, benchmarkCount=-1):
+        expiration_time = 60
+        cachedKey = f"website:{website}"
+        db = self.getDb()
+        
+        if db.exists(cachedKey):
+            result = json.loads(db.get(cachedKey))
+            if benchmarkCount >= 0 :
+                return benchmarkCount + 1
+            else:
+                return result
+        else:
+            result = self.mongoClient.get_users_by_website(website)
+            db.set(cachedKey, json.dumps(result), ex=expiration_time)
+            return result
+    
+    def get_a_website(self):
+        result = self.mongoClient.get_a_website()
+        return result
+        
 
 
     
